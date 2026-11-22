@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06161E">
+<title>Imara: steady money, local spending</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B5F58'/%3E%3Crect x='13' y='7' width='6' height='18' rx='2' fill='white'/%3E%3Ccircle cx='24' cy='8' r='3' fill='%23E8A93B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="shell">
+<div id="toast" hidden></div>
+
+<section id="welcome" class="glow" hidden>
+  <div class="bar"><div class="who"><span class="av">i</span>imara</div><span class="pill">Prototype</span></div>
+  <h1>Money that stays steady.</h1>
+  <p>Hold dollars. Pay for airtime, power and water in shillings.</p>
+  <div class="glass">
+    <div id="signupFields" hidden>
+      <label for="fullName">Full name</label><input id="fullName" autocomplete="name" placeholder="Amina Wanjiru">
+      <label for="country">Country</label><select id="country"></select>
+      <p class="note" id="curNote"></p>
+      <label for="phone">Phone (optional)</label><input id="phone" type="tel" autocomplete="tel">
+    </div>
+    <label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+    <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+    <button id="authBtn" class="btn w">Log in</button>
+    <div id="authMsg" class="msg" role="status"></div>
+    <button id="toggle" class="lk" type="button">New here? Create an account</button>
+  </div>
+  </section>
+
+<main id="app" hidden>
+  <div id="vHome" class="view">
+    <div class="glow top">
+      <div class="bar"><div class="who"><span class="av" id="av"></span><span id="hi"></span></div><span class="pill">Prototype</span></div>
+      <div class="lbl">Your balance</div>
+      <div class="big num" id="bal">$0.00</div>
+      <div class="sub" id="balLocal"></div>
+      <div class="acts">
+        <button class="act" id="aAdd"><i><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i><span>Add</span></button>
+        <button class="act" id="aPay"><i><svg class="i" viewBox="0 0 24 24"><path d="M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4"/></svg></i><span>Pay</span></button>
+        <button class="act" id="aHis"><i><svg class="i" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></i><span>History</span></button>
+      </div>
+    </div>
+    <div class="sheet">
+      <h2>Pay a bill</h2><div class="tiles" id="homeTiles"></div>
+      <div class="row2"><h2>Recent activity</h2><button id="seeAll">See all</button></div>
+      <div class="card" id="recent"></div>
+    </div>
+  </div>
+
+  <div id="vPay" class="view">
+    <div class="glow top" style="padding-bottom:46px"><h1 style="font-size:30px;margin-top:8px">Pay</h1><div class="sub">Choose a service. You see the cost in dollars first.</div></div>
+    <div class="sheet">
+      <div id="form">
+        <div class="tiles" id="payTiles"></div>
+        <div class="card">
+          <label for="rcp" id="rcpL" style="margin-top:0">Phone number</label><input id="rcp" inputmode="tel" placeholder="0771234567">
+          <label for="amt" id="amtL">Amount</label><input id="amt" inputmode="numeric" placeholder="10000">
+          <div class="quote" id="quote" hidden></div>
+          <button id="payBtn" class="btn">Pay now</button>
+          <div id="payMsg" class="msg" role="status"></div>
+        </div>
+      </div>
+      <div id="receipt" class="card rc" hidden>
+        <div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h2>Payment sent</h2><div class="num" id="rcAmt"></div><div class="rows" id="rcRows"></div>
+        <button id="done" class="btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="vAct" class="view">
+    <div class="glow top" style="padding-bottom:46px"><div class="lbl" style="margin-top:8px">Spent this month</div><div class="big num" id="spent">$0.00</div><div class="sub" id="spentLocal"></div></div>
+    <div class="sheet">
+      <h2>Where it went</h2><div class="card" id="split"></div>
+      <h2>All activity</h2><div class="card" id="all"></div>
+    </div>
+  </div>
+
+  <div id="vMe" class="view">
+    <div class="glow top" style="padding-bottom:46px"><div class="who" style="margin-top:8px"><span class="av" id="av2"></span><span id="em"></span></div></div>
+    <div class="sheet">
+      <div class="card" id="meInfo"></div>
+      <div class="card"><h2 style="margin-top:0">About this prototype</h2><p style="color:var(--mute);margin:0">Imara is an early test version. All money shown is fake and nothing is sent to real providers. It is not a licensed payment service.</p></div>
+      <button id="out" class="btn">Sign out</button>
+    </div>
+  </div>
+
+  <nav aria-label="Main">
+    <button data-v="Home"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</button>
+    <button data-v="Pay"><svg class="i" viewBox="0 0 24 24"><path d="M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4"/></svg>Pay</button>
+    <button data-v="Act"><svg class="i" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Activity</button>
+    <button data-v="Me"><svg class="i" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</button>
+  </nav>
+</main>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
