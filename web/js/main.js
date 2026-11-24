@@ -73,7 +73,7 @@ function renderQuote() {
   if (!a || a < c.per_usd * 0.25) { q.hidden = true; return; }
   const r = quote(a, c.per_usd, S.fee);
   q.hidden = false;
-  q.innerHTML = `You pay <b>${usd(r.total)}</b><br><small>Rate: ${money(c.per_usd, c)} per $1. Fee: ${usd(r.fee)}</small>`;
+  q.innerHTML = `You pay <b>${usd(r.total)}</b><br><small>Rate: ${money(c.per_usd, c)} per $1 (updated ${new Date(c.updated_at).toLocaleDateString()}). Fee: ${usd(r.fee)}</small>`;
 }
 $("amt").addEventListener("input", () => { renderQuote(); newKey(); });
 $("rcp").addEventListener("input", newKey);
@@ -88,8 +88,11 @@ const txRow = t => {
 };
 const none = `<p style="color:var(--mute);margin:4px 0">Nothing yet. Tap Add to get test dollars, then pay a bill.</p>`;
 async function loadWallet() {
-  const w = await api.getWallet(), b = Number(w?.balance_usd || 0);
-  $("bal").textContent = usd(b); $("balLocal").textContent = "About " + money(b * cur().per_usd, cur()); renderQuote();
+  const [w, lim] = await Promise.all([api.getWallet(), api.getLimits().catch(() => null)]), b = Number(w?.balance_usd || 0);
+  const left = lim ? Math.max(0, lim.daily_limit_usd - lim.spent_24h_usd) : null;
+  $("bal").textContent = usd(b);
+  $("balLocal").textContent = "About " + money(b * cur().per_usd, cur()) + (left === null ? "" : ` · ${usd(left)} left to spend today`);
+  renderQuote();
 }
 async function loadTx() {
   S.txs = await api.listTx();

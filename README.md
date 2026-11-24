@@ -6,7 +6,9 @@ Imara is not a licensed payment service.**
 
 ## Structure
 ```
-supabase/migrations/   0001_init.sql, 0002_multicurrency.sql   (run in order)
+supabase/migrations/   0001_init, 0002_multicurrency, 0003_rates_and_limits   (run in order)
+supabase/functions/    update-rates (daily FX job)
+supabase/tests/        database integration tests (run.sh)
 web/                   static front end, no build step
   index.html  css/styles.css
   js/config.js         Supabase URL + publishable key
@@ -18,9 +20,10 @@ web/                   static front end, no build step
 ```
 
 ## Run it
-1. Supabase > SQL Editor: run `0001_init.sql`, then `0002_multicurrency.sql`.
+1. Supabase > SQL Editor: run `0001_init.sql`, `0002_multicurrency.sql`, then `0003_rates_and_limits.sql`.
 2. Authentication > Providers > Email: turn "Confirm email" off for development only.
-3. Test: `npm test` (Node 18+).
+3. Test: `npm test` (unit tests). `npm run test:db` applies all migrations to a scratch Postgres and runs 28 checks
+   (needs psql access through PG* variables). CI runs both on every push.
 4. Local preview: `npx serve web`, or drag the `web` folder onto app.netlify.com/drop.
 
 ## Design decisions
@@ -32,6 +35,27 @@ web/                   static front end, no build step
 - **Balances are USD; payments are local.** Each user's currency comes from their country at
   sign-up and cannot be edited from the client.
 - **Publishable key in the client is intended.** The secret/service-role key must never be committed.
+
+## Limits and tiers
+Each user has a KYC tier (`profiles.kyc_tier`). Tier 0 (Basic): $100 spent per rolling 24 hours, $200 balance cap.
+Tier 1 (Verified): $1,000 and $5,000. Edit `kyc_tiers` to change them. For a demo, lift one account:
+`update profiles set kyc_tier = 1 where user_id = '<id>';` (users cannot change their own tier).
+
+## Live exchange rates
+Rates come from the free ExchangeRate-API open endpoint (once a day, attribution required: it is credited in the app).
+`set_rate()` is callable only by the service role and rejects moves larger than `settings.max_rate_move` (5%),
+so a bad feed cannot reprice payments. Every change is kept in `rate_history`.
+1. Edge Functions > create `update-rates`, paste `supabase/functions/update-rates/index.ts`, and turn **off** "Verify JWT".
+2. Project Settings > Edge Functions > Secrets: add `CRON_SECRET` (a long random string).
+3. Try it once: `curl -X POST https://<ref>.supabase.co/functions/v1/update-rates -H "x-cron-secret: <secret>"`
+4. Enable the `pg_cron` and `pg_net` extensions, then schedule it:
+```sql
+select cron.schedule('update-rates-daily', '0 6 * * *', $$
+  select net.http_post(url := 'https://<ref>.supabase.co/functions/v1/update-rates',
+                       headers := jsonb_build_object('x-cron-secret', '<secret>')); $$);
+```
+(In production keep the secret in Supabase Vault, not in the job text.) If the demo seed rate is more than 5% from
+the live rate, the first sync is refused on purpose: correct it once with `update currencies set per_usd = <rate> where code = '<code>';`.
 
 ## Add a country
 ```sql

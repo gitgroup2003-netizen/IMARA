@@ -12,6 +12,7 @@ export const getProfile = () => db.from("profiles").select("*").maybeSingle().th
 export const getWallet = () => db.from("wallets").select("balance_usd").maybeSingle().then(ok);
 export const getFeeRate = async () => Number((await db.from("settings").select("value").eq("key", "fee_rate").maybeSingle().then(ok))?.value ?? 0.01);
 export const listTx = () => db.from("transactions").select("*").order("created_at", { ascending: false }).limit(60).then(ok);
+export const getLimits = () => db.rpc("my_limits").then(ok);
 export const testDeposit = amount => db.rpc("test_deposit", { p_amount: amount }).then(ok);
 export const pay = ({ serviceId, recipient, amount, idem }) =>
   db.rpc("pay_service", { p_service_id: serviceId, p_recipient: recipient, p_amount_local: amount, p_idem: idem }).then(ok);

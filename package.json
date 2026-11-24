@@ -1,2 +1,11 @@
-{ "name": "imara", "version": "0.2.0", "private": true, "type": "module",
-  "scripts": { "test": "node --test", "serve": "npx serve web" } }
+{
+  "name": "imara",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "serve": "npx serve web",
+    "test:db": "bash supabase/tests/run.sh"
+  }
+}
