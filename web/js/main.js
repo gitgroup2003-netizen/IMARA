@@ -1,6 +1,6 @@
 // UI controller. Talks to the backend only through api.js.
 import * as api from "./api.js";
-import { money, usd, quote, esc } from "./format.js";
+import { money, usd, quote, esc, CATEGORIES, inCategory, placeholderFor } from "./format.js";
 
 const $ = id => document.getElementById(id);
 const S = { signup: false, uid: null, profile: null, countries: [], curMap: {}, services: [], svc: null, fee: 0.01, txs: [], idem: crypto.randomUUID() };
@@ -57,16 +57,30 @@ document.querySelector("nav").onclick = e => { const b = e.target.closest("butto
 $("aPay").onclick = () => setView("Pay"); $("aHis").onclick = () => setView("Act"); $("seeAll").onclick = () => setView("Act");
 
 /* ---------- services & quote ---------- */
-function tiles(el, short, pick) {
-  el.innerHTML = S.services.map(x => `<button class="tile" data-id="${esc(x.id)}" aria-pressed="${!short && x.id === S.svc.id}"><b style="background:${esc(x.color)};color:${esc(x.text_color)}">${esc(x.badge)}</b>${esc(x.short)}</button>`).join("");
+function drawCats() {
+  $("cats").innerHTML = CATEGORIES.map(c => `<button class="cat" data-c="${c.id}" aria-pressed="${c.id === S.cat}">${esc(c.label)}</button>`).join("");
+}
+$("cats").onclick = e => { const b = e.target.closest(".cat"); if (b) setCat(b.dataset.c); };
+function setCat(c) {
+  S.cat = c; drawCats();
+  const list = inCategory(S.services, c), s = list.find(x => x.id === S.svc?.id) || list[0];
+  if (s) pickSvc(s.id); else $("payTiles").innerHTML = `<p style="color:var(--mute)">Nothing here yet for your country.</p>`;
+}
+function homeCats() {
+  $("homeTiles").innerHTML = CATEGORIES.map(c => `<button class="tile" data-c="${c.id}"><b style="background:${c.color};color:${c.text}">${c.badge}</b>${esc(c.label)}</button>`).join("");
+  $("homeTiles").onclick = e => { const b = e.target.closest(".tile"); if (b) { setCat(b.dataset.c); setView("Pay"); } };
+}
+function tiles(el, pick) {
+  el.innerHTML = inCategory(S.services, S.cat).map(x => `<button class="tile" data-id="${esc(x.id)}" aria-pressed="${x.id === S.svc?.id}"><b style="background:${esc(x.color)};color:${esc(x.text_color)}">${esc(x.badge)}</b>${esc(x.short)}</button>`).join("");
   el.onclick = e => { const b = e.target.closest(".tile"); if (b) pick(b.dataset.id); };
 }
 function pickSvc(id) {
   S.svc = S.services.find(x => x.id === id) || S.services[0];
   const dial = S.countries.find(c => c.code === S.profile.country)?.dial ?? "";
   $("rcpL").textContent = S.svc.field_label;
-  $("rcp").placeholder = /phone/i.test(S.svc.field_label) ? dial + " …" : "Number on your bill";
-  tiles($("payTiles"), false, pickSvc); newKey();
+  $("rcp").placeholder = placeholderFor(S.svc.input_kind, dial);
+  $("rcp").type = S.svc.input_kind === "email" ? "email" : S.svc.input_kind === "phone" ? "tel" : "text";
+  tiles($("payTiles"), pickSvc); newKey();
 }
 function renderQuote() {
   const a = Number($("amt").value), c = cur(), q = $("quote");
@@ -132,7 +146,7 @@ async function boot() {
   $("hi").textContent = "Hello, " + first; $("av").textContent = $("av2").textContent = first.charAt(0).toUpperCase(); $("em").textContent = profile.full_name;
   $("meInfo").innerHTML = `<div class="rw"><span>Country</span><span>${esc(co?.name)}</span></div><div class="rw"><span>Pays bills in</span><span>${esc(c.code)}</span></div><div class="rw"><span>Phone</span><span>${esc(profile.phone || "Not set")}</span></div>`;
   $("amtL").textContent = "Amount in " + c.code; $("amt").placeholder = String(Math.round(c.per_usd * 3 / 100) * 100);
-  tiles($("homeTiles"), true, id => { pickSvc(id); setView("Pay"); }); pickSvc(S.services[0].id);
+  S.cat = "airtime"; homeCats(); setCat(S.cat);
   await refresh(); setView("Home");
 }
 api.onSession(guard(async session => {

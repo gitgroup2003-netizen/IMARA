@@ -63,6 +63,15 @@ select t.eq('B sees no one else''s wallet', (select count(*) from public.wallets
 select public.test_deposit(10);
 select public.pay_service('ug-mtn', '0771234567', 3600);
 select t.eq('3600 UGX = $1.00 + fee', (select balance_usd::text from public.wallets), '8.99');
+select t.expect_fail($q$select public.pay_service('ug-netflix','not-an-email',3600)$q$, 'valid email');
+select t.expect_fail($q$select public.pay_service('ug-umeme','ab',3600)$q$, 'valid meter');
+select public.pay_service('ug-netflix', 'b@x.com', 3600);
+select t.eq('online payment works', (select balance_usd::text from public.wallets), '7.98');
+
+reset role;
+select t.eq('KE has 4 categories', (select count(distinct category) from public.services where country = 'KE')::text, '4');
+select t.eq('UG has 4 categories', (select count(distinct category) from public.services where country = 'UG')::text, '4');
+set role authenticated; set request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-000000000002';
 
 -- Rates: only the service role, and never a wild jump
 select t.expect_fail($q$select public.set_rate('KES',131,'test')$q$, 'permission denied');

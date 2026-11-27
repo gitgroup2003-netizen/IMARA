@@ -67,3 +67,6 @@ select{appearance:none;-webkit-appearance:none}
 .glass select option{color:#0E2430}
 .note{font-size:13px;opacity:.8;margin:6px 0 0}
 .glass>label:first-child,#signupFields>label:first-child{margin-top:14px}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none}
+.cat{flex:none;font:600 14px "DM Sans",sans-serif;padding:9px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.cat[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}

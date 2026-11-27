@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { quote, money, usd, esc, round2 } from "../js/format.js";
+import { quote, money, usd, esc, round2, CATEGORIES, inCategory, placeholderFor } from "../js/format.js";
 
 test("quote converts local currency to USD and adds the fee", () => {
   assert.deepEqual(quote(13000, 130, 0.01), { base: 100, fee: 1, total: 101 });
@@ -13,3 +13,14 @@ test("money formats with symbol and separators", () => {
 });
 test("usd always shows two decimals", () => { assert.equal(usd(2.5), "$2.50"); assert.equal(round2(1.005 + 0.0001), 1.01); });
 test("esc neutralises HTML", () => { assert.equal(esc('<img src=x onerror="a">'), "&lt;img src=x onerror=&quot;a&quot;&gt;"); });
+
+test("services are filtered by category", () => {
+  const list = [{ id: "a", category: "online" }, { id: "b", category: "bills" }, { id: "c", category: "online" }];
+  assert.deepEqual(inCategory(list, "online").map(s => s.id), ["a", "c"]);
+  assert.equal(CATEGORIES.length, 4);
+});
+test("placeholder depends on the input type", () => {
+  assert.equal(placeholderFor("email", "+254"), "you@example.com");
+  assert.equal(placeholderFor("phone", "+254"), "+254 …");
+  assert.equal(placeholderFor("number", "+254"), "Number on your bill");
+});

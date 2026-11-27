@@ -12,5 +12,6 @@ q $DB -f migrations/0001_init.sql
 q $DB -f tests/legacy.sql          # an account from before 0002
 q $DB -f migrations/0002_multicurrency.sql
 q $DB -f migrations/0003_rates_and_limits.sql
+q $DB -f migrations/0004_service_categories.sql
 q $DB -v ON_ERROR_STOP=1 -f tests/integration.sql 2>&1 | sed -n 's/^psql:.*NOTICE:  /  /p;/ERROR/p'
 echo "database tests finished"

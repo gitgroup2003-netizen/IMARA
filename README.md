@@ -6,7 +6,7 @@ Imara is not a licensed payment service.**
 
 ## Structure
 ```
-supabase/migrations/   0001_init, 0002_multicurrency, 0003_rates_and_limits   (run in order)
+supabase/migrations/   0001_init, 0002_multicurrency, 0003_rates_and_limits, 0004_service_categories   (run in order)
 supabase/functions/    update-rates (daily FX job)
 supabase/tests/        database integration tests (run.sh)
 web/                   static front end, no build step
@@ -20,9 +20,9 @@ web/                   static front end, no build step
 ```
 
 ## Run it
-1. Supabase > SQL Editor: run `0001_init.sql`, `0002_multicurrency.sql`, then `0003_rates_and_limits.sql`.
+1. Supabase > SQL Editor: run `0001_init.sql`, `0002_multicurrency.sql`, `0003_rates_and_limits.sql`, then `0004_service_categories.sql`.
 2. Authentication > Providers > Email: turn "Confirm email" off for development only.
-3. Test: `npm test` (unit tests). `npm run test:db` applies all migrations to a scratch Postgres and runs 28 checks
+3. Test: `npm test` (unit tests). `npm run test:db` applies all migrations to a scratch Postgres and runs 32 checks
    (needs psql access through PG* variables). CI runs both on every push.
 4. Local preview: `npx serve web`, or drag the `web` folder onto app.netlify.com/drop.
 
@@ -56,6 +56,13 @@ select cron.schedule('update-rates-daily', '0 6 * * *', $$
 ```
 (In production keep the secret in Supabase Vault, not in the job text.) If the demo seed rate is more than 5% from
 the live rate, the first sync is refused on purpose: correct it once with `update currencies set per_usd = <rate> where code = '<code>';`.
+
+## Services and categories
+Four categories: Airtime & data, Bills, Send money, Online & subscriptions (Netflix, Spotify, YouTube Premium,
+Google Play, Apple). Each service has an input type (phone, email, or account number) that the server validates.
+**These are catalogue entries in test mode.** Real fulfilment needs a partner per category: an airtime and bill
+aggregator, mobile-money payout rails, and a gift-card or top-up provider for online services. Check coverage,
+fees and licensing for Kenya and Uganda before promising any service to users.
 
 ## Add a country
 ```sql

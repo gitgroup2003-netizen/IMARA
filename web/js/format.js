@@ -11,3 +11,12 @@ export const quote = (amountLocal, perUsd, feeRate) => {
   return { base, fee, total: round2(base + fee) };
 };
 export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+export const CATEGORIES = [
+  { id: "airtime", label: "Airtime & data", color: "#F2C230", text: "#2B2300", badge: "A" },
+  { id: "bills", label: "Bills", color: "#2A6FDB", text: "#ffffff", badge: "B" },
+  { id: "send", label: "Send money", color: "#0B5F58", text: "#ffffff", badge: "S" },
+  { id: "online", label: "Online & subscriptions", color: "#E50914", text: "#ffffff", badge: "O" }
+];
+export const inCategory = (services, cat) => services.filter(s => s.category === cat);
+export const placeholderFor = (kind, dial) => kind === "email" ? "you@example.com" : kind === "phone" ? `${dial} …` : "Number on your bill";
